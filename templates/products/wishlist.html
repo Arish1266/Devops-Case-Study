@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">My Wishlist</h1>
+            
+            {% if wishlist.products.all %}
+                <div class="row row-cols-1 row-cols-md-3 g-4">
+                    {% for product in wishlist.products.all %}
+                    <div class="col wishlist-product">
+                        <div class="card h-100">
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ product.name }}</h5>
+                                <p class="card-text">{{ product.description|truncatewords:15 }}</p>
+                                <p class="card-text text-muted">Price: ${{ product.price }}</p>
+                            </div>
+                            <div class="card-footer d-flex justify-content-between">
+                                <a href="{{ product.get_absolute_url }}" class="btn btn-sm btn-outline-primary">View Details</a>
+                                <form method="post" action="{% url 'products:remove_from_wishlist' product.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    Your wishlist is empty. Start adding products you love!
+                    <a href="{% url 'products:product_list' %}" class="alert-link">Browse Products</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Optional: Add interactivity to wishlist page
+    const removeButtons = document.querySelectorAll('.btn-outline-danger');
+    removeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    // Remove the product card from the page
+                    this.closest('.wishlist-product').remove();
+                    
+                    // Update wishlist count if needed
+                    const wishlistCount = document.querySelector('.wishlist-count');
+                    if (wishlistCount) {
+                        const currentCount = parseInt(wishlistCount.textContent);
+                        wishlistCount.textContent = currentCount - 1;
+                    }
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %}

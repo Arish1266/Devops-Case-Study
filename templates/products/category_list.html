@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Product Categories{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Product Categories</h1>
+    
+    <div class="row">
+        {% for category in categories %}
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ category.name }}</h5>
+                    <p class="card-text">
+                        {{ category.description|truncatewords:15 }}
+                        {% if category.description.split|length > 15 %}
+                        <a href="{% url 'products:category_detail' category.slug %}" class="text-primary">... Show More</a>
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'products:category_products' category.slug %}" class="btn btn-primary">
+                        View Products
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No categories available at the moment.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

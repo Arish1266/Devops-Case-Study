@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ product.name }} - Ipswich Electronics{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Product Image -->
+    <div class="col-md-6 mb-4">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid rounded">
+    </div>
+    
+    <!-- Product Details -->
+    <div class="col-md-6">
+        <h1 class="mb-3">{{ product.name }}</h1>
+        <p class="text-muted">Category: <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a></p>
+        
+        <div class="mb-3">
+            <h3 class="text-primary">${{ product.price }}</h3>
+            {% if product.stock > 0 %}
+                <span class="badge bg-success">In Stock</span>
+            {% else %}
+                <span class="badge bg-danger">Out of Stock</span>
+            {% endif %}
+        </div>
+        
+        <div class="mb-4">
+            {{ product.description|linebreaks }}
+        </div>
+        
+        {% if product.stock > 0 %}
+            <form action="{% url 'cart:cart_add' product.id %}" method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <select name="quantity" class="form-select">
+                            {% for i in "12345"|make_list %}
+                                <option value="{{ forloop.counter }}">{{ forloop.counter }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary">Add to Cart</button>
+                    </div>
+                </div>
+            </form>
+        {% endif %}
+        
+        <!-- Product Reviews -->
+        <div class="mt-5">
+            <h3>Customer Reviews</h3>
+            {% if product.reviews.all %}
+                {% for review in product.reviews.all %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="card-subtitle mb-2 text-muted">{{ review.user.username }}</h6>
+                                <div>
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star text-warning"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-warning"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <p class="card-text">{{ review.comment }}</p>
+                            <small class="text-muted">{{ review.created|date:"F d, Y" }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No reviews yet.</p>
+            {% endif %}
+            
+            {% if user.is_authenticated %}
+                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                    Write a Review
+                </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Related Products -->
+<div class="mt-5">
+    <h3>Related Products</h3>
+    <div class="row row-cols-1 row-cols-md-4 g-4">
+        {% for product in related_products %}
+            <div class="col">
+                <div class="card h-100">
+                    <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <p class="card-text">${{ product.price }}</p>
+                        <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Review Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Write a Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{% url 'products:add_review' product.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <select name="rating" class="form-select" required>
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Very Good</option>
+                            <option value="3">3 - Good</option>
+                            <option value="2">2 - Fair</option>
+                            <option value="1">1 - Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Comment</label>
+                        <textarea name="comment" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

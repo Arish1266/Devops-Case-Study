@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Order Confirmation - Ipswich Electronics{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h2 class="text-center mb-0">Order Confirmation</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title">Thank You for Your Purchase!</h3>
+                    <p>Your order has been successfully placed.</p>
+                    
+                    <div class="order-details">
+                        <h4>Order Details</h4>
+                        <p><strong>Order Number:</strong> {{ order.id }}</p>
+                        <p><strong>Order Date:</strong> {{ order.created_at|date:"F d, Y" }}</p>
+                        
+                        <h4>Shipping Information</h4>
+                        <p>
+                            {{ order.shipping_first_name }} {{ order.shipping_last_name }}<br>
+                            {{ order.shipping_address }}<br>
+                            {{ order.shipping_city }}, {{ order.shipping_state }} {{ order.shipping_zip_code }}<br>
+                            {{ order.shipping_country }}
+                        </p>
+                        
+                        <h4>Payment Method</h4>
+                        <p>{{ order.payment_method }}</p>
+                        
+                        <h4>Order Items</h4>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.orderitem_set.all %}
+                                <tr>
+                                    <td>{{ item.product.name }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>${{ item.price }}</td>
+                                    <td>${{ item.get_cost }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3"><strong>Total</strong></td>
+                                    <td><strong>${{ order.get_total_cost }}</strong></td>
+                                </tr>
+                                {% if order.discount %}
+                                <tr>
+                                    <td colspan="3"><strong>Discount</strong></td>
+                                    <td><strong>-${{ order.discount }}</strong></td>
+                                </tr>
+                                {% endif %}
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="{% url 'products:product_list' %}" class="btn btn-primary">Continue Shopping</a>
+                        <a href="{% url 'accounts:order_history' %}" class="btn btn-secondary">View Order History</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
